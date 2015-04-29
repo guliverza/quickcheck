@@ -46,23 +46,21 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
       meld(deleteMin(h1), insert(findMin(h1), h2)))
   }
 
-
   property("min1") = forAll { (a: A) =>
     val h = insert(a, empty)
     findMin(h) == a
   }
 
   property("minN") = forAll { (l: List[A]) =>
-    val h = l.foldLeft(empty){ (h: H, a: A) => insert(a, h)}
     case class BH(b: Boolean, h: H)
 
+    val h = l.foldLeft(empty){ (h: H, a: A) => insert(a, h)}
 
     val res = l.sorted.foldLeft(BH(true, h)) {
-      (bh: BH, a: A) => BH(bh.b && findMin(bh.h) == a, deleteMin(h))
+      (bh: BH, a: A) => BH(bh.b && findMin(bh.h) == a, deleteMin(bh.h))
     }
     res.b && isEmpty(res.h)
   }
-
 
   property("empty1") = forAll { a: A =>
     val h = insert(a, empty)
@@ -74,26 +72,10 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
     findMin(insert(m, h))==m
   }
 
-//  lazy val genMap: Gen[Map[Int,Int]] = for {
-//    k <- arbitrary[Int]
-//    v <- arbitrary[Int]
-//    m <- oneOf(const(Map.empty[Int,Int]), genMap)
-//  } yield m.updated(k, v)
-
   lazy val genHeap: Gen[H] = for {
     a <- arbitrary[Int]
     h <- oneOf(Gen.const(empty), genHeap)
   } yield insert(a, h)
 
   implicit lazy val arbHeap: Arbitrary[H] = Arbitrary(genHeap)
-
-
-  //  property("minN2") = forAll { (list: List[A]) =>
-  //    val h = list.foldLeft(empty){ (h: H, a: A) => insert(a, h)}
-  //
-  //    val backToList = toList(h)
-  //
-  //    list == backToList
-  //  }
-//  def toList(h:H):List[Int] = if (isEmpty(h)) Nil else findMin(h) :: toList(deleteMin(h))
 }
